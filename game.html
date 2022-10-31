@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<head>
+    <title>Stranica</title>
+    <style>
+    div{
+        display: flex;
+    }
+    canvas{
+        margin:0 auto;
+    }
+    </style>
+</head>
+<body>
+    <div>
+        <canvas id="myCanvas" width="1000" height ="700" style="background-color:#222222"></canvas>
+    </div>
+<script>var canvas = document.getElementById("myCanvas");
+var ctx = canvas.getContext("2d");
+
+var player = { x: 500 , y: canvas.height/2 , w:50, h:10, hp:10, maxhp:10};
+var xView = 0;
+var yView = 0;
+let terrainTex = new Image();
+terrainTex.src = 'https://github.com/Frkisocom/diablo/blob/main/tileset.png?raw=true';
+let playerTex = new Image();
+playerTex.src = 'https://github.com/Frkisocom/diablo/blob/main/enemy1.png?raw=true';
+
+const kTex={
+    xoffset:4,
+    yoffset:4,
+    w:152,
+    h:80
+}
+const karta1=[  [11,11,11,11,8,9,11,11,11,11,11,11,11,11,10,10,10,10,10,10],
+    [11,11,11,11,8,9,9,11,11,11,11,11,11,10,10,10,10,11,11,11],
+    [11,11,11,11,11,8,9,8,8,8,11,11,9,8,10,11,11,11,11,11],
+    [11,11,11,11,11,11,11,9,8,8,8,9,9,8,8,11,11,11,11,11],
+    [11,11,11,11,11,11,11,11,11,8,8,8,8,8,9,11,11,11,11,11],
+    [11,11,11,11,11,11,11,11,11,11,11,11,11,8,9,8,11,11,11,11],
+    [11,11,11,11,11,11,11,11,11,11,11,11,11,11,8,8,11,11,11,11],
+    [11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,8,8,11,11,11],
+    [11,11,2,2,11,11,11,11,4,4,4,4,4,4,11,9,8,8,11,11],
+    [11,2,2,2,2,11,11,11,4,4,4,4,4,4,11,11,9,8,11,11],
+    [11,11,2,2,11,11,11,11,4,4,4,4,4,4,1,1,9,8,11,11],
+    [11,11,11,11,11,11,11,11,4,4,4,4,4,4,1,1,9,8,11,11],
+    [11,11,11,11,11,11,11,11,4,4,4,4,4,4,11,11,9,8,11,11],
+    [11,11,11,11,11,11,11,11,4,4,4,4,4,4,11,11,8,9,11,11],
+    [11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,8,9,9,11,11],
+    [11,11,11,11,11,11,11,11,11,11,11,11,11,11,8,9,9,11,11,11],
+    [11,8,8,9,9,11,11,11,11,11,11,11,9,9,9,9,11,11,11,11],
+    [8,9,9,9,9,9,9,9,8,8,8,9,9,8,11,11,11,11,11,11],
+    [8,8,11,11,11,8,8,9,9,9,8,8,8,11,11,11,11,11,11,11],
+    [11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11]];
+    
+function Tiles(x, y, tx, ty){
+    this.x=x;
+    this.y=y;
+    this.tx=tx;
+    this.ty=ty;
+}
+const tileList=[];
+for(var j = 0; j < 20; j++){
+    for(var i = 0; i < 20; i++){
+        var x, y, tx, ty;
+        x= 500+(kTex.w)*i/2-(kTex.w*j/2);
+        y=(kTex.h)*j/2+i*kTex.h/2;
+        tx= kTex.xoffset+(kTex.xoffset+kTex.w)*(karta1[j][i]%4);
+        ty= kTex.yoffset+(kTex.yoffset+kTex.h)*Math.floor(karta1[j][i]/4)
+        tileList.push(new Tiles(x, y, tx, ty));
+    }
+}
+function drawMap(){
+    for(var j = 0; j < tileList.length; j++){
+            ctx.drawImage(terrainTex, tileList[j].tx, tileList[j].ty, kTex.w, kTex.h, tileList[j].x, tileList[j].y, kTex.w, kTex.h);
+    }
+}
+function drawPlayer(){
+    ctx.drawImage(playerTex, player.x, player.y);
+}
+function camera(){
+    const buffer = 400;
+    if (player.x + xView > canvas.width-buffer){
+        xView-=4;
+    }
+    if (player.x < -xView+buffer){
+        xView+=4;
+    }
+    if (player.y + yView > canvas.height-buffer){
+        yView-=2;
+    }
+    if (player.y < -yView+buffer){
+        yView+=2;
+    }
+}
+var upPressed = false;
+var downPressed = false;
+var rightPressed = false;
+var leftPressed = false;
+function movement(){
+    if(leftPressed && rightPressed){}
+    else if (leftPressed)
+    {
+        player.x -= 4;
+    }
+    else if (rightPressed)
+    {
+        player.x += 4;
+    }
+    if(upPressed && downPressed){}
+    else if (upPressed)
+    {
+        player.y -= 2;
+    }
+    else if (downPressed)
+    {   
+        player.y += 2;
+    }
+}
+
+function keyDownHandler(e){
+    if(e.key==="w"||e.key==="W")
+    {
+        upPressed = true;
+    }
+    if(e.key==="s"||e.key==="S")
+    {
+        downPressed = true;
+    }
+    if(e.key==="d"||e.key==="D")
+    {
+        rightPressed = true;
+    }
+    if(e.key==="a"||e.key==="A")
+    {
+        leftPressed = true;
+    }
+    if(e.key==="p"||e.key==="P")
+    {
+        if (paused===false)
+        {
+            paused = true;
+        }
+        else{
+            paused =false;
+        }
+    }
+}
+
+function keyUpHandler(e){
+    if(e.key==="w"||e.key==="W")
+    {
+        upPressed = false;
+    }
+    if(e.key==="s"||e.key==="S")
+    {
+        downPressed = false;
+    }
+    if(e.key==="d"||e.key==="D")
+    {
+        rightPressed = false;
+    }
+    if(e.key==="a"||e.key==="A")
+    {
+        leftPressed = false;
+    }
+}
+
+function update(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.translate(xView, yView);
+    camera();
+    movement();
+    drawMap();
+    drawPlayer();
+    ctx.restore();
+}
+document.addEventListener("keydown", keyDownHandler, false);
+document.addEventListener("keyup", keyUpHandler, false);
+
+const interval = setInterval(update, 10);</script>
+
+</body>
+</html>
